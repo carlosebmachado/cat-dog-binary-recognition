@@ -1,42 +1,33 @@
-from neural_network import CDRModel
-
+from keras_preprocessing import image
+from keras.models import model_from_json
+import numpy as np
 
 # 0 cat
 # 1 dog
+IMG_SIZE = 128
 
 
-def new_model():
-    model = CDRModel()
-    model.create()
-    model.compile()
-    model.train(16)
-    model.save()
-    
-    print(model.recognize('dataset/manual/cat/cat01.jpg'))
-    print(model.recognize('dataset/manual/cat/cat02.png'))
-    print(model.recognize('dataset/manual/cat/cat03.jpg'))
-    print(model.recognize('dataset/manual/cat/cat04.jpg'))
+# LOAD
+json_file = open('saved_model/model.json', 'r')
+loaded_model_json = json_file.read()
+json_file.close()
+classifier = model_from_json(loaded_model_json)
+classifier.load_weights('saved_model/model.h5')
 
 
-def load_model():
-    model = CDRModel()
-    model.load()
-    model.compile()
-    
-    print(model.recognize('dataset/manual/cat/cat01.jpg'))
-    print(model.recognize('dataset/manual/cat/cat02.png'))
-    print(model.recognize('dataset/manual/cat/cat03.jpg'))
-    print(model.recognize('dataset/manual/cat/cat04.jpg'))
-    
-    print(model.recognize('dataset/manual/dog/dog01.jpg'))
-    print(model.recognize('dataset/manual/dog/dog02.jpg'))
-    print(model.recognize('dataset/manual/dog/dog03.jpg'))
-    print(model.recognize('dataset/manual/dog/dog04.jpg'))
+# COMPILE
+classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics = ['accuracy'])
 
 
-def main():
-    #new_model()
-    load_model()
+# TEST
+test_img = image.load_img('test/cat/cat04.jpg', target_size=(IMG_SIZE,IMG_SIZE))
 
 
-main()
+test_img = image.load_img('test/dog/dog03.jpg', target_size=(IMG_SIZE,IMG_SIZE))
+
+
+
+test_img = image.img_to_array(test_img)
+test_img /= 255
+test_img = np.expand_dims(test_img, axis=0)
+print(classifier.predict(test_img))
